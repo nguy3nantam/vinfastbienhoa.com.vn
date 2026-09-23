@@ -1,0 +1,14 @@
+node_modules
+**/node_modules.previous-*
+.git
+.env
+apps/web/node_modules
+.pnpm-store
+dist
+dist.previous-*
+**/*.previous-*
+backups
+vite.out.log
+vite.err.log
+pb_data
+apps/pocketbase/pb_data/logs

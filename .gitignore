@@ -1,0 +1,11 @@
+.env
+node_modules/
+**/node_modules.previous-*/
+apps/*/node_modules/
+dist/
+dist.previous-*/
+**/*.previous-*
+pb_data/
+backups/
+apps/pocketbase/pb_data/
+*.log

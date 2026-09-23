@@ -1,0 +1,33 @@
+import { writeFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, resolve } from "node:path";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const outPath = resolve(__dirname, "../public/llms.txt");
+
+const content = `# VinFast Kim Sơn
+
+> Nhà phân phối VinFast lớn nhất miền Nam — báo giá, tư vấn và bán các dòng xe điện
+> VinFast (VF2, VF3, VF5, VF6, VF7, VF8, VF9, MPV7) và xe điện dịch vụ (Minio Green,
+> Herio Green, Nerio Green, Limo Green, EC Van) tại Biên Hòa, Đồng Nai và TP.HCM.
+
+VinFast Kim Sơn vận hành hệ thống showroom và xưởng dịch vụ tại Biên Hòa, Bửu Long,
+Trảng Dài, Trảng Bom, Long Khánh, Long Thành và Bình Thạnh (TP.HCM). Trang web cung cấp
+giá xe cập nhật, thông số kỹ thuật, đăng ký lái thử, đặt cọc trực tuyến và tin tức về
+các dòng xe điện VinFast.
+
+## Trang chính
+
+- [Trang chủ](https://vinfastbienhoa.com.vn/): Giới thiệu các dòng xe điện và xe dịch vụ VinFast, giá bán, ưu đãi.
+- [Giới thiệu](https://vinfastbienhoa.com.vn/gioi-thieu): Thông tin về VinFast Kim Sơn, hệ thống showroom.
+- [Liên hệ](https://vinfastbienhoa.com.vn/lien-he): Thông tin liên hệ, địa chỉ các showroom, hotline.
+- [Tin tức](https://vinfastbienhoa.com.vn/tin-tuc): Tin tức mới nhất về xe điện VinFast.
+
+## Ghi chú
+
+Nội dung sản phẩm (giá, ảnh, thông số) được cập nhật thường xuyên qua hệ thống quản trị nội bộ.
+Sitemap đầy đủ: https://vinfastbienhoa.com.vn/sitemap.xml
+`;
+
+writeFileSync(outPath, content, "utf-8");
+console.log(`Generated ${outPath}`);

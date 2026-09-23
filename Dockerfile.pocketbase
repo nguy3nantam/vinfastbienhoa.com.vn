@@ -1,0 +1,15 @@
+FROM alpine:latest
+
+WORKDIR /app
+
+COPY apps/pocketbase/pocketbase ./pocketbase
+COPY apps/pocketbase/docker-entrypoint.sh ./docker-entrypoint.sh
+COPY apps/pocketbase/.pocketbase-version ./.pocketbase-version
+COPY apps/pocketbase/pb_hooks ./pb_hooks
+COPY apps/pocketbase/pb_migrations ./pb_migrations
+
+RUN chmod +x ./pocketbase ./docker-entrypoint.sh
+
+EXPOSE 8090
+
+CMD ["./docker-entrypoint.sh"]

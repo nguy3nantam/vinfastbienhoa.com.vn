@@ -1,0 +1,20 @@
+{
+  "name": "monorepo",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "test": "npm test --workspace=web && python3 -m unittest discover -s scripts/news-sync -p 'test_*.py'",
+    "setup": "npm install",
+    "dev": "concurrently --kill-others --raw \"npm run dev --prefix apps/web\" \"npm run dev --prefix apps/pocketbase\"",
+    "build": "concurrently --raw \"npm run build --prefix apps/web\"",
+    "start": "concurrently --kill-others --raw \"npm run start --prefix apps/pocketbase\"",
+    "lint": "concurrently --raw \"npm run lint --prefix apps/web\"",
+    "smoke": "sh scripts/smoke-test.sh"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.3"
+  },
+  "workspaces": [
+    "apps/*"
+  ]
+}

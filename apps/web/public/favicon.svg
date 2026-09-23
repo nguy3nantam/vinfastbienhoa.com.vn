@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- VinFast V Logo -->
+  <defs>
+    <linearGradient id="vGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2c3e50;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#34495e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1a252f;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="512" height="512" fill="#ffffff"/>
+  
+  <!-- V Shape with gradient -->
+  <g transform="translate(256, 256)">
+    <!-- Left stroke of V -->
+    <path d="M -80 -120 L 0 80 L 20 60 L -60 -100 Z" fill="url(#vGradient)" opacity="0.9"/>
+    
+    <!-- Right stroke of V -->
+    <path d="M 80 -120 L 0 80 L -20 60 L 60 -100 Z" fill="url(#vGradient)" opacity="0.85"/>
+    
+    <!-- Inner highlight -->
+    <path d="M -40 -80 L 0 40 L 40 -80 Z" fill="#ffffff" opacity="0.15"/>
+  </g>
+</svg>
