@@ -236,7 +236,7 @@ const AboutPage = () => {
             <div className="mx-auto max-w-xl text-center">
               <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#3b5bdb]">Hệ thống cơ sở</p>
               <h2 className="mt-3 font-display text-2xl font-bold text-[#151515] sm:text-3xl">
-                10 Showroom & Xưởng Dịch Vụ trải rộng khắp Đồng Nai và TP.HCM
+                Hệ Thống Nhà Phân Phối Kim Sơn
               </h2>
             </div>
             <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

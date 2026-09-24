@@ -165,7 +165,7 @@ const Footer = () => {
 
         {/* 10 Locations Section */}
         <div className="mt-12 border-t border-neutral-300 pt-10">
-          <h3 className="font-display text-lg font-bold text-[#151515] mb-4">NPP Kim Sơn tự hào là đơn vị phân phối và dịch vụ hàng đầu tại Đồng Nai với 10 cơ sở:</h3>
+          <h3 className="font-display text-lg font-bold text-[#151515] mb-4">Hệ Thống Nhà Phân Phối Kim Sơn tự hào là đơn vị phân phối và dịch vụ hàng đầu tại Đồng Nai:</h3>
           <div className="grid gap-3 md:grid-cols-2">
             {LOCATIONS.map((loc, idx) => (
               <p key={idx} className="text-sm text-neutral-700 leading-relaxed">

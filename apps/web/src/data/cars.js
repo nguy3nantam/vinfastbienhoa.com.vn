@@ -377,4 +377,5 @@ export const LOCATIONS = [
   { name: "VinFast Long Thành 2", address: "Tổ 29 Trường Chinh, Khu Phước Hải, Long Thành, TP.Đồng Nai." },
   { name: "VinFast Long Thành 3", address: "Hùng Vương, KP.Phước Lai, Nhơn Trạch, TP.Đồng Nai." },
   { name: "VinFast Bình Thạnh", address: "182_184_188 Quốc Lộ 13, Khu phố 53, Phường Bình Thạnh, TP.HCM." },
+  { name: "GF Kim Sơn Hồ Chí Minh", address: "Đường Số 37, Khu đô thị An Phú An Khánh, Bình Trưng, TP.Hồ Chí Minh." },
 ];

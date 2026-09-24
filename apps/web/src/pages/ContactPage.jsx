@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { MapPin, Phone, Mail, CheckCircle2, Loader2, Building2 } from "lucide-react";
+import { MapPin, Phone, Mail, CheckCircle2, Loader2, Building2, ExternalLink } from "lucide-react";
 import pb from "@/lib/pocketbaseClient";
 import Header from "@/components/site/Header";
 import Footer from "@/components/site/Footer";
@@ -123,21 +123,32 @@ const ContactPage = () => {
             Hệ thống cơ sở
           </span>
           <h2 className="mt-3 max-w-3xl font-display text-2xl font-bold leading-snug text-[#151515] sm:text-4xl">
-            10 Showroom &amp; Xưởng Dịch Vụ trải rộng khắp Đồng Nai và TP.HCM
+            Hệ Thống Nhà Phân Phối Kim Sơn
           </h2>
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {LOCATIONS.map((loc) => (
-              <div
-                key={loc.name}
-                className="flex items-start gap-3 rounded-lg border border-neutral-200 bg-white p-5 transition hover:border-[#3b5bdb]/40 hover:shadow-md"
-              >
-                <MapPin className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#3b5bdb]" />
-                <div>
-                  <p className="text-sm font-semibold text-[#151515]">{loc.name}</p>
-                  <p className="mt-1 text-sm leading-relaxed text-neutral-600">{loc.address}</p>
-                </div>
-              </div>
-            ))}
+            {LOCATIONS.map((loc) => {
+              const mapQuery = encodeURIComponent(`${loc.name}, ${loc.address}`);
+              const mapUrl = `https://www.google.com/maps/search/?api=1&query=${mapQuery}`;
+              return (
+                <a
+                  key={loc.name}
+                  href={mapUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex items-start gap-3 rounded-lg bg-[#3b5bdb] p-5 text-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:bg-[#3451c7] hover:shadow-md cursor-pointer"
+                  title={`Xem chỉ đường đến ${loc.name} trên Google Maps`}
+                >
+                  <MapPin className="mt-0.5 h-5 w-5 flex-shrink-0 text-white transition-transform group-hover:scale-110" />
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-sm font-semibold text-white">{loc.name}</p>
+                      <ExternalLink className="h-3.5 w-3.5 flex-shrink-0 text-white/70 transition-opacity group-hover:text-white group-hover:opacity-100" />
+                    </div>
+                    <p className="mt-1 text-sm leading-relaxed text-white/90">{loc.address}</p>
+                  </div>
+                </a>
+              );
+            })}
           </div>
         </div>
       </section>
