@@ -60,9 +60,10 @@ const ContactPage = () => {
     <div className="min-h-screen bg-white">
       <Seo
         title="Liên Hệ"
-        description={`Liên hệ VinFast Kim Sơn - 10 showroom &amp; xưởng dịch vụ tại Biên Hòa, Đồng Nai, TP.HCM. Hotline KD ${settings.hotline_kd} - DV ${settings.hotline_dv}. Nhận báo giá và lịch lái thử.`}
+        description={`Liên hệ VinFast Kim Sơn - Hệ Thống Nhà Phân Phối Kim Sơn tại Biên Hòa, Đồng Nai, TP.HCM. Hotline KD ${settings.hotline_kd} - DV ${settings.hotline_dv}. Nhận báo giá và lịch lái thử.`}
         keywords="liên hệ vinfast kim sơn, hotline vinfast biên hòa, showroom vinfast đồng nai, đăng ký lái thử vinfast"
         path="/lien-he"
+        image={HERO_IMAGE}
         breadcrumb={[{ name: "Liên hệ", path: "/lien-he" }]}
       />
       <Header />
@@ -234,8 +235,8 @@ const ContactPage = () => {
                     <select value={form.model} onChange={update("model")} className={inputCls}>
                       <option value="">-- Chọn mẫu xe --</option>
                       {MODEL_OPTIONS.map((m) => (
-                        <option key={m} value={m.startsWith("VinFast") ? m : `VinFast ${m}`}>
-                          {m.startsWith("VinFast") ? m : `VinFast ${m}`}
+                        <option key={m} value={m}>
+                          VinFast {m}
                         </option>
                       ))}
                     </select>

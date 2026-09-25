@@ -65,9 +65,10 @@ const AboutPage = () => {
     <div className="min-h-screen bg-white">
       <Seo
         title="Giới Thiệu"
-        description="VinFast Kim Sơn - nhà phân phối xe điện VinFast lớn nhất miền Nam, hệ thống 10 showroom &amp; xưởng dịch vụ tại Biên Hòa, Đồng Nai, TP.HCM. Tầm nhìn, sứ mệnh, giá trị cốt lõi."
+        description="VinFast Kim Sơn - Nhà phân phối xe điện VinFast lớn nhất miền Nam, Hệ Thống Nhà Phân Phối Kim Sơn gồm các showroom & xưởng dịch vụ tại Biên Hòa, Đồng Nai, TP.HCM. Tầm nhìn, sứ mệnh, giá trị cốt lõi."
         keywords="giới thiệu vinfast kim sơn, nhà phân phối vinfast biên hòa, showroom vinfast đồng nai, đại lý vinfast uy tín"
         path="/gioi-thieu"
+        image={aboutHeroImage}
         type="article"
         breadcrumb={[{ name: "Giới thiệu", path: "/gioi-thieu" }]}
       />
@@ -236,7 +237,7 @@ const AboutPage = () => {
             <div className="mx-auto max-w-xl text-center">
               <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#3b5bdb]">Hệ thống cơ sở</p>
               <h2 className="mt-3 font-display text-2xl font-bold text-[#151515] sm:text-3xl">
-                Hệ Thống Nhà Phân Phối Kim Sơn
+                10 Showroom & Xưởng Dịch Vụ trải rộng khắp Đồng Nai và TP.HCM
               </h2>
             </div>
             <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

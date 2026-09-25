@@ -73,7 +73,7 @@ const NewsDetailPage = () => {
         publisher: {
           "@type": "Organization",
           name: "VinFast Kim Sơn",
-          logo: { "@type": "ImageObject", url: "https://vinfastbienhoa.com.vn/favicon.svg" },
+          logo: { "@type": "ImageObject", url: "https://vinfastbienhoa.com.vn/og-banner.jpg" },
         },
         mainEntityOfPage: { "@type": "WebPage", "@id": `https://vinfastbienhoa.com.vn/tin-tuc/${item.id}` },
       }

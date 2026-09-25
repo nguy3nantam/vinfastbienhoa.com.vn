@@ -27,9 +27,11 @@ const HomePage = () => {
   return (
     <div className="min-h-screen bg-white">
       <Seo
-        description={`VinFast Kim Sơn - nhà phân phối VinFast lớn nhất miền Nam. Báo giá xe điện VF3, VF5, VF6, VF7, VF8, VF9, ưu đãi tốt nhất, lái thử miễn phí. Hotline ${settings.hotline}.`}
-        keywords="vinfast kim sơn, vinfast biên hòa, vinfast đồng nai, giá xe vinfast, xe điện vinfast, vf3, vf5, vf6, vf7, vf8, vf9, đại lý vinfast"
+        title="VinFast Kim Sơn - Đại Lý Xe Điện VinFast Chính Hãng Biên Hòa"
+        description={`VinFast Kim Sơn - Nhà phân phối VinFast lớn nhất miền Nam. Báo giá xe điện VF3, VF5, VF6, VF7, VF8, VF9, Wild, ưu đãi tốt nhất, lái thử miễn phí tại Biên Hòa, Đồng Nai. Hotline ${settings.hotline}.`}
+        keywords="vinfast kim sơn, vinfast biên hòa, vinfast đồng nai, giá xe vinfast, xe điện vinfast, vf3, vf5, vf6, vf7, vf8, vf9, vinfast wild, đại lý vinfast"
         path="/"
+        image="/og-banner.jpg"
       />
       <Header />
       <main>
