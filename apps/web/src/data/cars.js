@@ -125,6 +125,19 @@ export const electricCars = [
       { label: "Số chỗ ngồi", value: "7 chỗ" },
     ],
   },
+  {
+    id: "wild",
+    name: "VinFast Wild",
+    tagline: "Bán tải điện thông minh — bản lĩnh dẫn đầu, phong cách đột phá.",
+    price: "Liên hệ",
+    image: "https://static-cms-prod.vinfastauto.com/hinh-anh-banner-vinfast-vf-wild-desktop-092026.webp",
+    color: "Xám Ánh Kim",
+    specs: [
+      { label: "Dòng xe", value: "Bán tải điện" },
+      { label: "Công nghệ", value: "Thông minh cao cấp" },
+      { label: "Thiết kế", value: "Đột phá phong cách" },
+    ],
+  },
 ];
 
 export const serviceCars = [
@@ -327,6 +340,7 @@ export const MODEL_OPTIONS = [
   "VF7",
   "VF8",
   "VF9",
+  "Wild",
   "MPV7",
   "VF8 All New",
   "Minio Green",
