@@ -26,7 +26,7 @@ import Seo from "@/components/site/Seo";
 const SPEC_ICONS = [Zap, Gauge, Timer, Users, Ruler, BatteryCharging];
 
 const inputCls =
-  "w-full rounded-sm border border-neutral-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#3b5bdb] focus:ring-2 focus:ring-[#3b5bdb]/20";
+  "w-full rounded-sm border border-neutral-300 bg-white px-3 py-2.5 sm:px-4 sm:py-3 text-[16px] sm:text-sm outline-none transition focus:border-[#3b5bdb] focus:ring-2 focus:ring-[#3b5bdb]/20";
 
 const Field = ({ label, children }) => (
   <label className="block">
