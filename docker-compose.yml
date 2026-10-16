@@ -1,8 +1,8 @@
-name: vinfastbienhoacomvn
+name: vinfast-hochiminh
 
 services:
   web:
-    container_name: vinfastbienhoacomvn-web
+    container_name: vinfast-hochiminh-web
     build:
       context: .
       dockerfile: Dockerfile.web
@@ -18,13 +18,13 @@ services:
       start_period: 10s
     labels:
       - traefik.enable=true
-      - traefik.http.routers.vinfastbienhoacomvn.rule=Host(`vinfastbienhoa.com.vn`) || Host(`www.vinfastbienhoa.com.vn`)
-      - traefik.http.routers.vinfastbienhoacomvn.entrypoints=websecure
-      - traefik.http.routers.vinfastbienhoacomvn.tls.certresolver=letsencrypt
-      - traefik.http.services.vinfastbienhoacomvn.loadbalancer.server.port=80
+      - traefik.http.routers.vinfast-hochiminh.rule=Host(`vinfast-hochiminh.com`) || Host(`www.vinfast-hochiminh.com`)
+      - traefik.http.routers.vinfast-hochiminh.entrypoints=websecure
+      - traefik.http.routers.vinfast-hochiminh.tls.certresolver=letsencrypt
+      - traefik.http.services.vinfast-hochiminh.loadbalancer.server.port=80
 
   pocketbase:
-    container_name: vinfastbienhoacomvn-pocketbase
+    container_name: vinfast-hochiminh-pocketbase
     build:
       context: .
       dockerfile: Dockerfile.pocketbase
@@ -43,7 +43,7 @@ services:
       start_period: 15s
 
   news-sync:
-    container_name: vinfastbienhoacomvn-news-sync
+    container_name: vinfast-hochiminh-news-sync
     build:
       context: ./scripts/news-sync
     depends_on:
@@ -61,7 +61,7 @@ services:
       start_period: 5m
 
   backup:
-    container_name: vinfastbienhoacomvn-backup
+    container_name: vinfast-hochiminh-backup
     build:
       context: ./scripts/backup
     depends_on:
