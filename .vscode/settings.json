@@ -5,5 +5,9 @@
             "matchCommandLine": true
         }
     },
-    "ollama.endpoint": "https://ollama.com"
+    "ollama.endpoint": "https://ollama.com",
+    "chat.tools.terminal.ignoreDefaultAutoApproveRules": true,
+    "chat.permissions.default": "autoApprove",
+    "chat.agent.sandbox.network.allowLocalNetwork": true,
+    "chat.agent.sandbox.enabled": "on"
 }
