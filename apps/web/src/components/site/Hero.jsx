@@ -38,7 +38,7 @@ const Hero = () => {
   }, [slides.length]);
 
   return (
-    <section id="top" aria-label="Ưu đãi ô tô điện VinFast" aria-roledescription="carousel" className="relative mt-[72px] aspect-[5/8] w-full overflow-hidden bg-[#f6f7f9] md:aspect-[16/9]">
+    <section id="top" aria-label="Ưu đãi ô tô điện VinFast" aria-roledescription="carousel" className="relative mt-[72px] h-[380px] sm:h-[500px] md:h-[calc(100vh-72px)] max-h-[780px] w-full overflow-hidden bg-[#f6f7f9]">
       {slides.map((s, idx) => {
         const Wrapper = s.link_url ? "a" : "div";
         return (
