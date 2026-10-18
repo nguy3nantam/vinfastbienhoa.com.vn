@@ -1,7 +1,20 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import pb from "@/lib/pocketbaseClient";
 import { homeSlides as FALLBACK_SLIDES } from "@/data/homeSlides";
+
+// Link cùng domain phải đi qua router để không tải lại toàn bộ trang chủ.
+const internalTarget = (url) => {
+  if (!url) return null;
+  try {
+    const parsed = new URL(url, window.location.origin);
+    if (parsed.origin !== window.location.origin) return null;
+    return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+  } catch {
+    return null;
+  }
+};
 
 const Hero = () => {
   const [i, setI] = useState(0);
@@ -38,13 +51,19 @@ const Hero = () => {
   }, [slides.length]);
 
   return (
-    <section id="top" aria-label="Ưu đãi ô tô điện VinFast" aria-roledescription="carousel" className="relative mt-[72px] h-[380px] sm:h-[500px] md:h-[calc(100vh-72px)] max-h-[780px] w-full overflow-hidden bg-[#f6f7f9]">
+    <section id="top" aria-label="Ưu đãi ô tô điện VinFast" aria-roledescription="carousel" className="relative mt-[72px] h-[380px] sm:h-[500px] md:h-[calc(100vh-72px)] max-h-[780px] w-full overflow-hidden bg-neutral-900">
       {slides.map((s, idx) => {
-        const Wrapper = s.link_url ? "a" : "div";
+        const internal = internalTarget(s.link_url);
+        const Wrapper = s.link_url ? (internal ? Link : "a") : "div";
+        const linkProps = !s.link_url
+          ? {}
+          : internal
+            ? { to: internal }
+            : { href: s.link_url };
         return (
           <Wrapper
             key={idx}
-            {...(s.link_url ? { href: s.link_url } : {})}
+            {...linkProps}
             className={`absolute inset-0 transition-opacity duration-1000 ${idx === i ? "opacity-100" : "pointer-events-none opacity-0"}`}
             aria-hidden={idx !== i}
             tabIndex={s.link_url && idx !== i ? -1 : undefined}
@@ -54,7 +73,7 @@ const Hero = () => {
               <img
                 src={s.image}
                 alt={s.title || ""}
-                className="h-full w-full object-cover object-center"
+                className="h-full w-full bg-neutral-900 object-cover object-center"
                 loading={idx === i ? "eager" : "lazy"}
                 decoding="async"
                 fetchPriority={idx === i ? "high" : "low"}
