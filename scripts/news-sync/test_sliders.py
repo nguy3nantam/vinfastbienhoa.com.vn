@@ -16,6 +16,21 @@ def banner(content):
     return '<div id="block-home-banner"><div class="swiper-wrapper">' + content + '</div></div>'
 
 
+def v3_slide(filename, link='https://go.vinfastauto.com/q/test', alt='Ô tô điện', duplicate=False):
+    classes = 'homepage-v3__hero-slide swiper-slide' + (' swiper-slide-duplicate' if duplicate else '')
+    return f'''<article class="{classes}" role="group">
+      <a href="{link}" class="homepage-v3__hero-link">
+        <div class="homepage-v3__hero-media"><picture class="homepage-v3__hero-picture">
+          <source media="(max-width: 1023px)" srcset="{CDN}{filename.replace('desktop', 'mobile')}">
+          <img src="{CDN}{filename}" alt="{alt}" class="homepage-v3__hero-image">
+        </picture></div>
+      </a></article>'''
+
+
+def v3_section(content):
+    return '<section class="homepage-v3__section homepage-v3__hero">' + content + '</section>'
+
+
 class SliderTests(unittest.TestCase):
     def test_only_home_banners_not_menu_or_vehicle_catalog(self):
         document = '<nav>' + slide('vf7-menu.webp') + '</nav>'
@@ -63,6 +78,31 @@ class SliderTests(unittest.TestCase):
         with patch.object(sync, 'fetch_rendered_html', return_value=document), patch.object(sync, 'pb_upsert_sliders', return_value={'created': 2}) as write:
             self.assertEqual(sync.sync_sliders(), (2, 2, 0))
             self.assertEqual(write.call_args.args[0][0]['mobile_image_url'], CDN + 'limo-green-mobile.webp')
+
+    def test_v3_homepage_hero_markup_is_supported(self):
+        document = v3_section(
+            v3_slide('hinh-anh-banner-lai-thu-2010-desktop-v2.webp', alt='Trải nghiệm ô tô điện VinFast')
+            + v3_slide('hinh-anh-banner-vf-wild-desktop.webp', alt='VF Wild')
+            + v3_slide('hinh-anh-banner-xe-may-dien-desktop.webp', alt='Tương lai xanh xe máy điện')
+            + v3_slide('hinh-anh-banner-vinfast-sota-desktop.webp', alt='VF EStore')
+            + v3_slide('hinh-anh-banner-lai-thu-2010-desktop-v2.webp', alt='Trải nghiệm ô tô điện VinFast', duplicate=True)
+        )
+        items = sync.parse_slider_items(document)
+        self.assertEqual([item['order'] for item in items], [0, 1])
+        self.assertTrue(items[0]['image_url'].endswith('hinh-anh-banner-lai-thu-2010-desktop-v2.webp'))
+        self.assertEqual(items[0]['mobile_image_url'], CDN + 'hinh-anh-banner-lai-thu-2010-mobile-v2.webp')
+        self.assertEqual(items[0]['title'], 'Trải nghiệm ô tô điện VinFast')
+        self.assertTrue(items[1]['image_url'].endswith('hinh-anh-banner-vf-wild-desktop.webp'))
+
+    def test_v3_slide_identity_is_unique_per_image(self):
+        document = v3_section(
+            v3_slide('hinh-anh-banner-vf-wild-desktop.webp', alt='VF Wild')
+            + v3_slide('hinh-anh-banner-vi-tuong-lai-xanh-desktop.webp', alt='Vi tương lai xanh')
+        )
+        items = sync.parse_slider_items(document)
+        self.assertEqual(len(items), 2)
+        self.assertNotEqual(items[0]['source_url'], items[1]['source_url'])
+        self.assertTrue(all(item['source_url'].startswith(sync.SLIDER_SOURCE_URL + '#home-electric-') for item in items))
 
 
 if __name__ == '__main__':

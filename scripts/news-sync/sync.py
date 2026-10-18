@@ -136,11 +136,43 @@ class HomeBannerParser(HTMLParser):
         self.depth -= 1
 
 
+TAG_ATTR_RE = re.compile(r'([\w:-]+)\s*=\s*"([^"]*)"')
+HERO_TAG_RE = re.compile(r"<(a|img|source)\b([^>]*)>", re.I)
+
+
+def parse_attrs(attr_text):
+    return {key.lower(): html.unescape(value) for key, value in TAG_ATTR_RE.findall(attr_text)}
+
+
+def parse_v3_hero_slides(html_content):
+    """Read slides from the 2026 homepage-v3 hero (`article.homepage-v3__hero-slide`)."""
+    slides = []
+    for match in re.finditer(r"<article\b([^>]*)>([\s\S]*?)</article>", html_content, re.I):
+        classes = parse_attrs(match.group(1)).get("class", "").split()
+        if "homepage-v3__hero-slide" not in classes or "swiper-slide-duplicate" in classes:
+            continue
+        slide = {}
+        for tag_match in HERO_TAG_RE.finditer(match.group(2)):
+            tag = tag_match.group(1).lower()
+            attrs = parse_attrs(tag_match.group(2))
+            if tag == "a" and "link_url" not in slide:
+                slide["link_url"] = absolute_url(attrs.get("href", ""))
+            elif tag == "source" and "max-width" in attrs.get("media", "") and "mobile_image_url" not in slide:
+                slide["mobile_image_url"] = absolute_url(attrs.get("srcset", "").split(",")[0].split(" ")[0])
+            elif tag == "img" and "image_url" not in slide:
+                slide["image_url"] = absolute_url(attrs.get("data-src") or attrs.get("src", ""))
+                slide["title"] = attrs.get("alt", "").strip()
+        if slide.get("image_url"):
+            slides.append(slide)
+    return slides
+
+
 def parse_slider_items(html_content):
     parser = HomeBannerParser()
     parser.feed(html_content)
+    slides = parser.slides or parse_v3_hero_slides(html_content)
     items, seen = [], set()
-    for slide in parser.slides:
+    for slide in slides:
         image_url = slide.get("image_url", "")
         if not re.match(r"^https://(?:[^/]+\.)?vinfastauto\.com/", image_url, re.I) or image_url in seen:
             continue
@@ -150,7 +182,7 @@ def parse_slider_items(html_content):
         if re.search(r"xe-may|motorcycle|scooter|evo-|feliz|klara|vento|theon|drgnfly", evidence):
             continue
         model = re.search(r"vf-?([2-9])|(?:minio|herio|nerio|limo)-green|vf-?mpv-?7|ec-van", evidence)
-        if not model and not re.search(r"o-to|banner-oto|products-car", evidence):
+        if not model and not re.search(r"o-to|banner-oto|products-car|lai-thu|vf-wild|vi-tuong-lai-xanh", evidence):
             continue
         if model:
             label = "VF " + model.group(1) if model.group(1) else model.group().replace("-", " ").title()

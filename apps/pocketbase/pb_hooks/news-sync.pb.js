@@ -303,8 +303,10 @@ routerAdd("POST", "/api/internal/slider-ingest", (e) => {
     const result = { created: 0, updated: 0, skipped: 0, disabled: 0 };
     e.app.runInTransaction((app) => {
         const collection = app.findCollectionByNameOrId("sliders");
-        const existing = app.findRecordsByFilter("sliders", "source_url != ''", "", 1000, 0);
-        slides.forEach((item, index) => {
+        const existing = app.findRecordsByFilter("sliders", "id != ''", "", 1000, 0);
+        // Xếp slide mới sau các slide hiện có để không đè thứ tự của admin.
+        let nextOrder = existing.reduce((max, entry) => Math.max(max, entry.getInt("order")), -1) + 1;
+        slides.forEach((item) => {
             let record = existing.find((entry) => entry.getString("source_url") === item.source_url);
             if (record) {
                 // Slide đã được admin sửa từ /admin (managed=false) là "của" quản trị:
@@ -331,6 +333,12 @@ routerAdd("POST", "/api/internal/slider-ingest", (e) => {
                     result.skipped++;
                 }
             } else {
+                // Không tạo banner trùng ảnh với slide admin đã tự thêm trước đó.
+                const sameImage = existing.find((entry) => !entry.getString("source_url") && entry.get("image_url") === item.image_url);
+                if (sameImage) {
+                    result.skipped++;
+                    return;
+                }
                 record = new Record(collection);
                 record.set("source_url", item.source_url);
                 record.set("image_url", item.image_url);
@@ -338,7 +346,7 @@ routerAdd("POST", "/api/internal/slider-ingest", (e) => {
                 record.set("title", String(item.title || "Ô tô điện VinFast").slice(0, 200));
                 record.set("subtitle", "");
                 record.set("link_url", item.link_url);
-                record.set("order", index);
+                record.set("order", nextOrder++);
                 record.set("active", true);
                 record.set("managed", true);
                 app.save(record);
