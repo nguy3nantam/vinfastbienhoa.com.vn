@@ -18,7 +18,7 @@ services:
       start_period: 10s
     labels:
       - traefik.enable=true
-      - traefik.http.routers.vinfast-hochiminh.rule=Host(`vinfast-hochiminh.com`) || Host(`www.vinfast-hochiminh.com`)
+      - traefik.http.routers.vinfast-hochiminh.rule=Host(`vinfast-hochiminh.com`) || Host(`www.vinfast-hochiminh.com`) || Host(`vinfastbienhoa.com.vn`) || Host(`www.vinfastbienhoa.com.vn`)
       - traefik.http.routers.vinfast-hochiminh.entrypoints=websecure
       - traefik.http.routers.vinfast-hochiminh.tls.certresolver=letsencrypt
       - traefik.http.services.vinfast-hochiminh.loadbalancer.server.port=80
