@@ -117,9 +117,6 @@ const VehicleGrid = () => {
   return (
     <section id="dong-xe" className="bg-white py-20 lg:py-28">
       <div className="mx-auto max-w-[72rem] px-5 text-center lg:px-10">
-        <span className="text-sm font-semibold uppercase tracking-[0.3em] text-[#3b5bdb]">
-          Dòng xe VinFast
-        </span>
         <h1 className="mt-4 font-display text-3xl font-bold sm:text-5xl">Khám phá gia đình VinFast</h1>
         <p className="mx-auto mt-5 max-w-2xl text-[15px] leading-relaxed text-neutral-600">
           Ngôn ngữ thiết kế VinFast kết hợp hoàn hảo giữa những đường cong thể thao, nét sang trọng và
