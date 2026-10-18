@@ -1,4 +1,4 @@
-import { writeFileSync } from "node:fs";
+import { chmodSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 
@@ -8,7 +8,7 @@ const outPath = resolve(__dirname, "../public/llms.txt");
 const content = `# VinFast Kim Sơn
 
 > Nhà phân phối VinFast lớn nhất miền Nam — báo giá, tư vấn và bán các dòng xe điện
-> VinFast (VF2, VF3, VF5, VF6, VF7, VF8, VF9, MPV7) và xe điện dịch vụ (Minio Green,
+> VinFast (VF2, VF3, VF5, VF6, VF7, VF8, VF9, Wild, MPV7) và xe điện dịch vụ (Minio Green,
 > Herio Green, Nerio Green, Limo Green, EC Van) tại Biên Hòa, Đồng Nai và TP.HCM.
 
 VinFast Kim Sơn vận hành hệ thống showroom và xưởng dịch vụ tại Biên Hòa, Bửu Long,
@@ -29,5 +29,6 @@ Nội dung sản phẩm (giá, ảnh, thông số) được cập nhật thườ
 Sitemap đầy đủ: https://vinfastbienhoa.com.vn/sitemap.xml
 `;
 
-writeFileSync(outPath, content, "utf-8");
+writeFileSync(outPath, content, { encoding: "utf-8", mode: 0o644 });
+chmodSync(outPath, 0o644);
 console.log(`Generated ${outPath}`);

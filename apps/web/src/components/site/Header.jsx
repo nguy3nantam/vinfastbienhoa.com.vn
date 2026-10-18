@@ -244,28 +244,28 @@ const Header = () => {
               Liên hệ
             </Link>
           </nav>
-        </div>
 
-        {/* Footer Drawer */}
-        <div className="border-t border-black/5 bg-neutral-50 p-5 space-y-3">
-          <button
-            type="button"
-            onClick={() => {
-              setOpen(false);
-              openDepositDialog();
-            }}
-            className="w-full rounded-md bg-[#3b5bdb] py-3 text-center text-sm font-semibold uppercase tracking-wider text-white shadow-sm transition-colors hover:bg-[#2b47b8]"
-          >
-            Nhận Tư Vấn Ưu Đãi
-          </button>
-          <a
-            href={`tel:${phoneDial}`}
-            onClick={() => setOpen(false)}
-            className="flex w-full items-center justify-center gap-2 rounded-md border border-[#3b5bdb] py-3 text-center text-sm font-semibold uppercase tracking-wider text-[#3b5bdb] transition-colors hover:bg-[#3b5bdb] hover:text-white"
-          >
-            <Phone className="h-4 w-4" strokeWidth={2} />
-            Hotline: {settings.hotline}
-          </a>
+          {/* Action Buttons right under menu */}
+          <div className="mt-6 space-y-3 px-1">
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                openDepositDialog();
+              }}
+              className="w-full rounded-md bg-[#3b5bdb] py-3 text-center text-sm font-semibold uppercase tracking-wider text-white shadow-sm transition-colors hover:bg-[#2b47b8]"
+            >
+              Nhận Tư Vấn Ưu Đãi
+            </button>
+            <a
+              href={`tel:${phoneDial}`}
+              onClick={() => setOpen(false)}
+              className="flex w-full items-center justify-center gap-2 rounded-md border border-[#3b5bdb] py-3 text-center text-sm font-semibold uppercase tracking-wider text-[#3b5bdb] transition-colors hover:bg-[#3b5bdb] hover:text-white"
+            >
+              <Phone className="h-4 w-4" strokeWidth={2} />
+              Hotline: {settings.hotline}
+            </a>
+          </div>
         </div>
       </div>
 

@@ -35,12 +35,19 @@ const DEFAULT_SENDERS = [
   },
 ];
 
-const DEFAULT_RECIPIENTS = [
-  { id: "r1", email: "tan.tranminh@vinfastbienhoa.vn", note: "Trưởng phòng kinh doanh", active: true },
-  { id: "r2", email: "nguy3nantam@gmail.com", note: "Quản trị viên hệ thống", active: true },
-  { id: "r3", email: "admin@vinfastbienhoa.com.vn", note: "Quản trị viên chính", active: true },
-  { id: "r4", email: "kinhdoanh@vinfastbienhoa.com.vn", note: "Bộ phận tư vấn lái thử", active: true },
-];
+const DEFAULT_RECIPIENTS = [];
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const normalizeRecipients = (items) => {
+  const seen = new Set();
+  return items.reduce((result, item) => {
+    const email = String(item.email || "").trim().toLowerCase();
+    if (!EMAIL_PATTERN.test(email) || seen.has(email)) return result;
+    seen.add(email);
+    result.push({ ...item, email });
+    return result;
+  }, []);
+};
 
 const MailSettingsPage = () => {
   const [form, setForm] = useState({
@@ -56,6 +63,8 @@ const MailSettingsPage = () => {
   const [message, setMessage] = useState("");
   const [testEmail, setTestEmail] = useState("");
   const [testing, setTesting] = useState(false);
+  const [loadedSenderAddress, setLoadedSenderAddress] = useState("");
+  const [mailSettingsId, setMailSettingsId] = useState("");
 
   // Configured sender accounts list
   const [senders, setSenders] = useState(() => {
@@ -83,8 +92,12 @@ const MailSettingsPage = () => {
   const [newRecipient, setNewRecipient] = useState({ email: "", note: "" });
 
   useEffect(() => {
-    pb.send("/api/settings", { method: "GET" })
-      .then((settings) => {
+    Promise.all([
+      pb.send("/api/settings", { method: "GET" }),
+      pb.collection("mail_settings").getList(1, 1, { requestKey: null }),
+    ])
+      .then(([settings, mailSettingsResult]) => {
+        const mailSettings = mailSettingsResult.items[0];
         setForm({
           enabled: !!settings.smtp?.enabled,
           host: settings.smtp?.host && !settings.smtp.host.includes("example.com") ? settings.smtp.host : "",
@@ -93,17 +106,19 @@ const MailSettingsPage = () => {
           password: "",
           tls: settings.smtp?.tls !== false,
         });
+        setLoadedSenderAddress(settings.meta?.senderAddress || "");
+        setMailSettingsId(mailSettings?.id || "");
 
-        if (settings.meta?.recipientsJson) {
+        if (mailSettings?.recipients_json) {
           try {
-            const list = JSON.parse(settings.meta.recipientsJson);
-            if (Array.isArray(list) && list.length > 0) setRecipients(list);
+            const list = JSON.parse(mailSettings.recipients_json);
+            if (Array.isArray(list)) setRecipients(list);
           } catch {}
         }
-        if (settings.meta?.sendersJson) {
+        if (mailSettings?.senders_json) {
           try {
-            const list = JSON.parse(settings.meta.sendersJson);
-            if (Array.isArray(list) && list.length > 0) setSenders(list);
+            const list = JSON.parse(mailSettings.senders_json);
+            if (Array.isArray(list)) setSenders(list);
           } catch {}
         }
       })
@@ -116,6 +131,23 @@ const MailSettingsPage = () => {
     setSaving(true);
     setMessage("");
     try {
+      if (form.enabled && (!form.host.trim() || !form.username.trim())) {
+        setMessage("SMTP đang bật: vui lòng nhập đầy đủ SMTP Host và Username.");
+        return;
+      }
+      if (form.enabled && Number(form.port) === 587 && form.tls) {
+        setMessage("Cổng 587 phải tắt TLS trực tiếp để PocketBase dùng STARTTLS.");
+        return;
+      }
+
+      const normalizedRecipients = normalizeRecipients(recipients);
+      const activeRecipients = normalizedRecipients.filter((r) => r.active !== false);
+      if (form.enabled && activeRecipients.length === 0) {
+        setMessage("SMTP đang bật: cần ít nhất một email nhận thông báo đang hoạt động.");
+        return;
+      }
+
+      const activeSenders = senders.filter((s) => s.active !== false);
       const smtp = {
         enabled: form.enabled,
         host: form.host.trim(),
@@ -125,30 +157,55 @@ const MailSettingsPage = () => {
       };
       if (form.password) smtp.password = form.password;
 
-      const defaultSender = senders.find((s) => s.isDefault) || senders[0] || {
+      const selectedDefaultSender = activeSenders.find((s) => s.isDefault) || activeSenders[0] || {
         name: "VinFast Kim Sơn",
-        email: "no-reply@vinfastbienhoa.com.vn",
+        email: form.username.trim(),
       };
+      const smtpSenderEmail = form.username.trim();
+      const smtpSender = activeSenders.find((sender) => sender.email.toLowerCase() === smtpSenderEmail.toLowerCase());
+      const synchronizedSender = smtpSender || {
+        id: `smtp-${Date.now()}`,
+        name: selectedDefaultSender.name || "VinFast Kim Sơn",
+        email: smtpSenderEmail,
+        role: "Tài khoản SMTP thực tế",
+        active: true,
+      };
+      const synchronizedSenders = smtpSender ? senders : [...senders, synchronizedSender];
+      const normalizedSenders = synchronizedSenders.map((sender) => ({
+        ...sender,
+        isDefault: sender.id === synchronizedSender.id,
+      }));
 
       await pb.send("/api/settings", {
         method: "PATCH",
         body: {
           smtp,
           meta: {
-            senderName: defaultSender.name,
-            senderAddress: defaultSender.email,
-            sendersJson: JSON.stringify(senders),
-            recipientsJson: JSON.stringify(recipients),
-            notificationEmails: recipients.map((r) => r.email).join(","),
+            senderName: synchronizedSender.name,
+            senderAddress: smtpSenderEmail,
           },
         },
       });
 
-      localStorage.setItem("vf_mail_senders", JSON.stringify(senders));
-      localStorage.setItem("vf_mail_recipients", JSON.stringify(recipients));
+      const mailSettingsBody = {
+        senders_json: JSON.stringify(normalizedSenders),
+        recipients_json: JSON.stringify(normalizedRecipients),
+      };
+      if (mailSettingsId) {
+        await pb.collection("mail_settings").update(mailSettingsId, mailSettingsBody);
+      } else {
+        const created = await pb.collection("mail_settings").create(mailSettingsBody);
+        setMailSettingsId(created.id);
+      }
+
+      setSenders(normalizedSenders);
+      setRecipients(normalizedRecipients);
+      localStorage.setItem("vf_mail_senders", JSON.stringify(normalizedSenders));
+      localStorage.setItem("vf_mail_recipients", JSON.stringify(normalizedRecipients));
 
       setForm((f) => ({ ...f, password: "" }));
-      setMessage("Đã lưu thành công tất cả cấu hình gửi/nhận email.");
+      setLoadedSenderAddress(smtpSenderEmail);
+      setMessage("Đã lưu cấu hình. Hãy dùng Gửi thử để xác nhận SMTP hoạt động và kiểm tra hộp thư nhận.");
     } catch (err) {
       setMessage(err?.response?.message || "Có lỗi xảy ra khi lưu cấu hình mail.");
     } finally {
@@ -206,13 +263,27 @@ const MailSettingsPage = () => {
     localStorage.setItem("vf_mail_senders", JSON.stringify(updated));
   };
 
+  const handleToggleSender = (id, active) => {
+    setSenders((current) => current.map((sender) => (
+      sender.id === id ? { ...sender, active } : sender
+    )));
+  };
+
   // Recipient list handlers
   const handleAddRecipient = (e) => {
     e.preventDefault();
-    if (!newRecipient.email.trim()) return;
+    const email = newRecipient.email.trim().toLowerCase();
+    if (!EMAIL_PATTERN.test(email)) {
+      setMessage("Email người nhận không hợp lệ.");
+      return;
+    }
+    if (recipients.some((recipient) => recipient.email?.trim().toLowerCase() === email)) {
+      setMessage("Email người nhận đã có trong danh sách.");
+      return;
+    }
     const item = {
       id: String(Date.now()),
-      email: newRecipient.email.trim(),
+      email,
       note: newRecipient.note.trim() || "Nhận thông báo",
       active: true,
     };
@@ -227,6 +298,24 @@ const MailSettingsPage = () => {
     setRecipients(updated);
     localStorage.setItem("vf_mail_recipients", JSON.stringify(updated));
   };
+
+  const handleToggleRecipient = (id, active) => {
+    setRecipients((current) => current.map((recipient) => (
+      recipient.id === id ? { ...recipient, active } : recipient
+    )));
+  };
+
+  const portNumber = Number(form.port);
+  const transportWarning = portNumber === 587 && form.tls
+    ? "Cấu hình không khớp: cổng 587 dùng STARTTLS, hãy tắt TLS trực tiếp."
+    : portNumber === 465 && !form.tls
+      ? "Cấu hình không khớp: cổng 465 thường cần bật TLS trực tiếp."
+      : "";
+  const selectedSender = senders.find((sender) => sender.isDefault && sender.active !== false);
+  const senderWarning = form.enabled && selectedSender?.email && form.username.trim()
+    && selectedSender.email.toLowerCase() !== form.username.trim().toLowerCase()
+    ? `Người gửi mặc định (${selectedSender.email}) khác Username SMTP (${form.username.trim()}). Chỉ dùng được nếu nhà cung cấp cho phép alias này.`
+    : "";
 
   if (loading) return <p className="text-neutral-400">Đang tải...</p>;
 
@@ -251,6 +340,7 @@ const MailSettingsPage = () => {
               <Switch
                 checked={form.enabled}
                 onCheckedChange={(v) => setForm((f) => ({ ...f, enabled: v }))}
+                aria-label="Bật hoặc tắt SMTP"
               />
               <span className="text-sm font-medium text-neutral-600">{form.enabled ? "Đang bật" : "Đang tắt"}</span>
             </div>
@@ -290,9 +380,26 @@ const MailSettingsPage = () => {
               />
             </div>
             <div className="flex items-center gap-2 sm:col-span-2">
-              <Switch checked={form.tls} onCheckedChange={(v) => setForm((f) => ({ ...f, tls: v }))} />
-              <span className="text-sm font-medium">Sử dụng kết nối bảo mật TLS / SSL</span>
+              <Switch
+                checked={form.tls}
+                onCheckedChange={(v) => setForm((f) => ({ ...f, tls: v }))}
+                aria-label="TLS trực tiếp"
+              />
+              <span className="text-sm font-medium">TLS trực tiếp (thường dùng cổng 465)</span>
             </div>
+            <p className="text-xs text-neutral-500 sm:col-span-2">
+              Với cổng 587, hãy tắt công tắc này để PocketBase dùng STARTTLS. Lưu cấu hình chưa có nghĩa là SMTP đã gửi được; cần chạy Gửi thử.
+            </p>
+            {transportWarning && (
+              <p role="alert" className="rounded-md border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700 sm:col-span-2">
+                {transportWarning}
+              </p>
+            )}
+            {senderWarning && (
+              <p role="alert" className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm font-medium text-amber-800 sm:col-span-2">
+                {senderWarning}
+              </p>
+            )}
           </CardContent>
         </Card>
 
@@ -309,7 +416,7 @@ const MailSettingsPage = () => {
           </CardHeader>
           <CardContent className="space-y-6">
             <p className="text-xs text-neutral-500">
-              Quản lý tất cả địa chỉ email gửi đi. Email được chọn mốc <strong className="text-emerald-700">"Người gửi mặc định"</strong> sẽ được tự động sử dụng làm thông tin gửi chính từ hệ thống.
+              Đây là địa chỉ From dùng khi gửi thông báo, không phải hộp thư được tạo trên máy chủ. Nhà cung cấp SMTP có thể yêu cầu người gửi mặc định trùng Username SMTP.
             </p>
 
             <div className="overflow-x-auto rounded-md border border-neutral-200 bg-white">
@@ -339,14 +446,23 @@ const MailSettingsPage = () => {
                           <Badge variant="outline">{s.role}</Badge>
                         </TableCell>
                         <TableCell>
-                          {s.isDefault ? (
-                            <Badge className="bg-emerald-600 text-white font-medium">Người gửi mặc định</Badge>
-                          ) : (
-                            <span className="text-xs text-neutral-500">Đã cấu hình</span>
+                          <div className="flex items-center gap-2">
+                            <Switch
+                              checked={s.active !== false}
+                              onCheckedChange={(active) => handleToggleSender(s.id, active)}
+                              aria-label={`Bật hoặc tắt ${s.email}`}
+                            />
+                            <span className="text-xs text-neutral-500">{s.active !== false ? "Đang dùng" : "Đã tắt"}</span>
+                          </div>
+                          {s.isDefault && s.active !== false && (
+                            <Badge className="mt-1 bg-emerald-600 text-white font-medium">Người gửi mặc định</Badge>
+                          )}
+                          {s.isDefault && loadedSenderAddress === s.email && (
+                            <Badge variant="outline" className="ml-1 mt-1">Đã lưu máy chủ</Badge>
                           )}
                         </TableCell>
                         <TableCell className="text-right space-x-1">
-                          {!s.isDefault && (
+                          {!s.isDefault && s.active !== false && (
                             <Button
                               type="button"
                               variant="ghost"
@@ -419,7 +535,7 @@ const MailSettingsPage = () => {
           </CardHeader>
           <CardContent className="space-y-6">
             <p className="text-xs text-neutral-500">
-              Các email nằm trong danh sách này sẽ tự động nhận được thư báo khi có khách hàng điền form nhận tư vấn hoặc đăng ký lái thử trên website.
+              Chỉ email đang bật mới nhận thông báo khách hàng mới. Danh sách này không tạo hộp thư; địa chỉ phải tồn tại và domain phải có MX hợp lệ.
             </p>
 
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -429,6 +545,11 @@ const MailSettingsPage = () => {
                     <p className="truncate text-sm font-semibold text-[#151515]">{r.email}</p>
                     <p className="text-xs text-neutral-400">{r.note}</p>
                   </div>
+                  <Switch
+                    checked={r.active !== false}
+                    onCheckedChange={(active) => handleToggleRecipient(r.id, active)}
+                    aria-label={`Bật hoặc tắt nhận mail ${r.email}`}
+                  />
                   <Button
                     type="button"
                     variant="ghost"

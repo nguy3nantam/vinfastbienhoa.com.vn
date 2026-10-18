@@ -27,18 +27,35 @@ onRecordAfterCreateSuccess((e) => {
   `;
 
   const meta = $app.settings().meta || {};
-  let recipientEmails = ["tan.tranminh@vinfastbienhoa.vn", "nguy3nantam@gmail.com", "admin@vinfastbienhoa.com.vn", "kinhdoanh@vinfastbienhoa.com.vn"];
+  const smtp = $app.settings().smtp || {};
+  let recipientEmails = [];
 
-  if (meta.notificationEmails) {
-    const list = meta.notificationEmails.split(",").map((s) => s.trim()).filter(Boolean);
-    if (list.length > 0) recipientEmails = list;
-  } else if (meta.recipientsJson) {
+  let recipientsJson = "[]";
+  try {
+    const mailSettings = $app.findFirstRecordByFilter("mail_settings", "id != ''");
+    recipientsJson = mailSettings.get("recipients_json") || "[]";
+  } catch (err) {
+    $app.logger().error("contact notification email skipped: mail settings unavailable", "err", String(err));
+  }
+
+  if (recipientsJson) {
     try {
-      const parsed = JSON.parse(meta.recipientsJson);
+      const parsed = JSON.parse(recipientsJson);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        recipientEmails = parsed.map((r) => r.email).filter(Boolean);
+        recipientEmails = parsed
+          .filter((r) => r.active !== false)
+          .map((r) => String(r.email || "").trim().toLowerCase())
+          .filter((email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
       }
     } catch (err) { }
+  }
+
+  recipientEmails = [...new Set(recipientEmails)];
+
+  if (recipientEmails.length === 0) {
+    $app.logger().warn("contact notification email skipped: no active recipients");
+    e.next();
+    return;
   }
 
   const toList = recipientEmails.map((addr) => ({ address: addr }));
@@ -46,7 +63,7 @@ onRecordAfterCreateSuccess((e) => {
   const message_ = new MailerMessage({
     from: {
       name: meta.senderName || "VinFast Kim Sơn",
-      address: meta.senderAddress || "no-reply@vinfastbienhoa.com.vn",
+      address: smtp.username || meta.senderAddress || "no-reply@vinfastbienhoa.com.vn",
     },
     to: toList,
     subject: `KHTN ${DOMAIN}`,
@@ -55,7 +72,7 @@ onRecordAfterCreateSuccess((e) => {
 
   try {
     $app.newMailClient().send(message_);
-    $app.logger().info("contact notification email sent", "to", recipientEmails.join(","), "from", meta.senderAddress);
+    $app.logger().info("contact notification email sent", "to", recipientEmails.join(","), "from", smtp.username || meta.senderAddress);
   } catch (err) {
     $app.logger().error("contact notification email failed", "err", String(err), "stack", err?.stack || "");
   }

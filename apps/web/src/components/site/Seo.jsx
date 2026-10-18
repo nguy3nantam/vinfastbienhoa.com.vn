@@ -31,7 +31,7 @@ const buildOrgSchema = (settings) => ({
   logo: `${SITE_URL}/og-banner.jpg`,
   image: `${SITE_URL}/og-banner.jpg`,
   telephone: settings.hotline_kd.replace(/\D/g, "") || "0913757579",
-  email: CONTACT.email,
+  email: settings.email || CONTACT.email,
   priceRange: "269.000.000đ - 1.348.000.000đ",
   brand: { "@type": "Brand", name: "VinFast" },
   address: {

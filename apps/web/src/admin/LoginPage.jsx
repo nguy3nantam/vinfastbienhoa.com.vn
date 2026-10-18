@@ -10,7 +10,7 @@ import Logo from "@/components/site/Logo";
 const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -28,11 +28,11 @@ const LoginPage = () => {
     setError("");
     setLoading(true);
     try {
-      await adminLogin(email.trim(), password);
+      await adminLogin(username, password);
       const redirectTo = location.state?.from || "/admin";
       navigate(redirectTo, { replace: true });
     } catch (err) {
-      setError("Email hoặc mật khẩu không đúng.");
+      setError("Tên đăng nhập hoặc mật khẩu không đúng.");
     } finally {
       setLoading(false);
     }
@@ -49,19 +49,26 @@ const LoginPage = () => {
         <CardContent>
           <form onSubmit={submit} className="space-y-4">
             <div>
-              <label className="mb-1.5 block text-sm font-medium">Email</label>
+              <label htmlFor="admin-username" className="mb-1.5 block text-sm font-medium">Tên đăng nhập</label>
               <Input
-                type="email"
+                id="admin-username"
+                type="text"
                 autoComplete="username"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@vinfastbienhoa.vn"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Nhập tài khoản"
+                autoCapitalize="none"
+                spellCheck={false}
               />
+              <p className="mt-1 text-xs text-neutral-500">
+                Chỉ cần nhập tên, hệ thống tự thêm @vinfastbienhoa.com.vn.
+              </p>
             </div>
             <div>
-              <label className="mb-1.5 block text-sm font-medium">Mật khẩu</label>
+              <label htmlFor="admin-password" className="mb-1.5 block text-sm font-medium">Mật khẩu</label>
               <Input
+                id="admin-password"
                 type="password"
                 autoComplete="current-password"
                 required

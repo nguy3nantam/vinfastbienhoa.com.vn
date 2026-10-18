@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 
 // Optional browser tooling may be installed outside the application workspace.
 const playwrightModule = process.env.PLAYWRIGHT_MODULE || 'playwright';
-const { chromium } = await import(playwrightModule);
+const loadedPlaywright = await import(playwrightModule);
+const { chromium } = loadedPlaywright.default || loadedPlaywright;
 
 const browser = await chromium.launch({ headless: true, args: ['--no-sandbox'] });
 const context = await browser.newContext({ viewport: { width: 1365, height: 900 } });
@@ -14,11 +15,25 @@ let failNews = true;
 let failAdmin = false;
 let failSave = false;
 let savedNews;
+let loginIdentity;
 const settings = { id: 'settings1234567', email: 'test@example.com', zalo: 'https://zalo.me/0123456789', messenger: 'https://m.me/test-dealer' };
 const cars = ['vf5', 'vf3'].map((slug) => ({ id: slug, slug, name: `VinFast ${slug.toUpperCase()}`, category: 'electric', active: true, price: '123.456.789', color: 'Trắng', image_url: '/favicon.svg', specs: [{ label: 'Thông số từ quản trị', value: 'Test' }] }));
 const news = (id) => ({ id, title: `Bài viết ${id}`, published: true, content: '<p>Nội dung bài viết</p>', published_at: '2026-09-01', excerpt: 'Tin thử nghiệm' });
 await context.route('**/hcgi/platform/**', async route => {
   const url = new URL(route.request().url());
+  if (url.pathname.endsWith('/api/settings')) {
+    return route.fulfill({ json: { smtp: { enabled: true, host: 'smtp.example.test', port: 587, username: 'sender@example.test', tls: false }, meta: { senderAddress: 'sender@example.test' } } });
+  }
+  const authMatch = url.pathname.match(/collections\/(_superusers|users)\/auth-with-password$/);
+  if (authMatch) {
+    loginIdentity = route.request().postDataJSON()?.identity;
+    return route.fulfill({
+      json: {
+        token: `test.${btoa(JSON.stringify({ exp: Math.floor(Date.now() / 1000) + 3600 }))}.test`,
+        record: { id: 'fake-admin', collectionName: authMatch[1], email: loginIdentity },
+      },
+    });
+  }
   const match = url.pathname.match(/collections\/([^/]+)\/records(?:\/([^/]+))?/);
   if (!match) return route.fulfill({ status: 404, json: {} });
   const [, collection, id] = match;
@@ -41,6 +56,11 @@ await context.route('**/hcgi/platform/**', async route => {
   }
   if (collection === 'site_settings') items = [settings];
   if (collection === 'news') items = [news('first')];
+  if (collection === 'mail_settings') items = [{
+    id: 'mailsettings123',
+    senders_json: JSON.stringify([{ id: 's1', name: 'Người gửi thử', email: 'sender@example.test', role: 'SMTP', isDefault: true, active: true }]),
+    recipients_json: JSON.stringify([{ id: 'r1', email: 'recipient@example.test', note: 'Người nhận thử', active: true }]),
+  }];
   if (collection === 'sliders') items = [1, 2].map(i => ({ id: `${i}`, title: `Slide ${i}`, image_url: '/favicon.svg', link_url: `/slide-${i}`, active: true }));
   return route.fulfill({ json: { page: 1, perPage: 30, totalPages: 1, totalItems: items.length, items } });
 });
@@ -99,6 +119,18 @@ try {
   await page.getByRole('heading', { name: 'Không tìm thấy trang' }).waitFor();
   assert.equal(await page.locator('meta[name="robots"]').getAttribute('content'), 'noindex, follow');
   console.log('PASS unknown routes show a useful 404 page');
+
+  await go('/admin/login');
+  await page.getByLabel('Tên đăng nhập').fill('tamdev');
+  await page.getByLabel('Mật khẩu').fill('mat-khau-thu-nghiem');
+  await page.getByRole('button', { name: 'Đăng nhập', exact: true }).click();
+  await page.waitForURL('**/admin');
+  assert.equal(loginIdentity, 'tamdev@vinfastbienhoa.com.vn');
+  console.log('PASS short admin username is normalized to the configured email domain');
+
+  await go('/admin/settings/mail');
+  await page.getByText('recipient@example.test', { exact: true }).waitFor();
+  console.log('PASS mail settings load recipients from the persisted server collection');
 
   await page.evaluate(() => {
     const payload = btoa(JSON.stringify({ exp: Math.floor(Date.now() / 1000) + 3600 }));

@@ -4,5 +4,6 @@
             "approve": true,
             "matchCommandLine": true
         }
-    }
+    },
+    "ollama.endpoint": "https://ollama.com"
 }

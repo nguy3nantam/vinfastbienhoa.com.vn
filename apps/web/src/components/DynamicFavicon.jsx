@@ -6,13 +6,26 @@ const DynamicFavicon = () => {
 
   useEffect(() => {
     if (!settings.faviconUrl) return;
-    let link = document.querySelector("link[rel~='icon']");
-    if (!link) {
-      link = document.createElement("link");
+    const links = document.querySelectorAll("link[rel~='icon']");
+    if (links.length) {
+      links.forEach((link) => {
+        link.href = settings.faviconUrl;
+        if (settings.faviconUrl.endsWith(".png")) {
+          link.type = "image/png";
+        } else if (settings.faviconUrl.endsWith(".svg")) {
+          link.type = "image/svg+xml";
+        } else if (settings.faviconUrl.endsWith(".ico")) {
+          link.type = "image/x-icon";
+        } else {
+          link.removeAttribute("type");
+        }
+      });
+    } else {
+      const link = document.createElement("link");
       link.rel = "icon";
+      link.href = settings.faviconUrl;
       document.head.appendChild(link);
     }
-    link.href = settings.faviconUrl;
   }, [settings.faviconUrl]);
 
   return null;

@@ -12,7 +12,7 @@
     "smoke": "sh scripts/smoke-test.sh"
   },
   "devDependencies": {
-    "concurrently": "^10.0.3"
+    "concurrently": "^10.0.6"
   },
   "workspaces": [
     "apps/*"

@@ -9,3 +9,5 @@ pb_data/
 backups/
 apps/pocketbase/pb_data/
 *.log
+__pycache__/
+*.py[cod]

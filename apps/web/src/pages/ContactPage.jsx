@@ -4,7 +4,7 @@ import pb from "@/lib/pocketbaseClient";
 import Header from "@/components/site/Header";
 import Footer from "@/components/site/Footer";
 import FloatingContact from "@/components/site/FloatingContact";
-import { MODEL_OPTIONS, COLOR_OPTIONS, CONTACT, LOCATIONS } from "@/data/cars";
+import { MODEL_OPTIONS, COLOR_OPTIONS, LOCATIONS } from "@/data/cars";
 import Seo from "@/components/site/Seo";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import aboutHeroImage from "@/assets/about-hero.jpg";
@@ -60,10 +60,9 @@ const ContactPage = () => {
     <div className="min-h-screen bg-white">
       <Seo
         title="Liên Hệ"
-        description={`Liên hệ VinFast Kim Sơn - Hệ Thống Nhà Phân Phối Kim Sơn tại Biên Hòa, Đồng Nai, TP.HCM. Hotline KD ${settings.hotline_kd} - DV ${settings.hotline_dv}. Nhận báo giá và lịch lái thử.`}
+        description={`Liên hệ VinFast Kim Sơn - 10 showroom &amp; xưởng dịch vụ tại Biên Hòa, Đồng Nai, TP.HCM. Hotline KD ${settings.hotline_kd} - DV ${settings.hotline_dv}. Nhận báo giá và lịch lái thử.`}
         keywords="liên hệ vinfast kim sơn, hotline vinfast biên hòa, showroom vinfast đồng nai, đăng ký lái thử vinfast"
         path="/lien-he"
-        image={HERO_IMAGE}
         breadcrumb={[{ name: "Liên hệ", path: "/lien-he" }]}
       />
       <Header />
@@ -110,7 +109,7 @@ const ContactPage = () => {
           <div className="flex items-start gap-3">
             <Mail className="mt-0.5 h-6 w-6 flex-shrink-0 text-[#3b5bdb]" />
             <div>
-              <p className="font-display text-lg font-bold text-[#151515] sm:text-2xl">{CONTACT.email}</p>
+              <p className="font-display text-lg font-bold text-[#151515] sm:text-2xl">{settings.email}</p>
               <p className="text-sm text-neutral-600">Email hỗ trợ</p>
             </div>
           </div>
@@ -184,13 +183,13 @@ const ContactPage = () => {
                 </span>
               </a>
               <a
-                href={`mailto:${CONTACT.email}`}
+                href={`mailto:${settings.email}`}
                 className="flex items-center gap-4 rounded-lg border border-white/10 bg-white/5 p-4 transition hover:bg-white/10"
               >
                 <span className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10">
                   <Mail className="h-5 w-5" />
                 </span>
-                <span className="font-medium">{CONTACT.email}</span>
+                <span className="font-medium">{settings.email}</span>
               </a>
             </div>
           </div>
