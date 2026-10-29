@@ -61,9 +61,6 @@ const LoginPage = () => {
                 autoCapitalize="none"
                 spellCheck={false}
               />
-              <p className="mt-1 text-xs text-neutral-500">
-                Chỉ cần nhập tên, hệ thống tự thêm @vinfastbienhoa.com.vn.
-              </p>
             </div>
             <div>
               <label htmlFor="admin-password" className="mb-1.5 block text-sm font-medium">Mật khẩu</label>

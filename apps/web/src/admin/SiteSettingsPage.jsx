@@ -21,6 +21,29 @@ const FIELDS = [
   { key: "youtube", label: "Link YouTube" },
 ];
 
+const toForm = (record) => ({
+  hotline_kd: record.hotline_kd || "",
+  hotline_dv: record.hotline_dv || "",
+  hotline: record.hotline || "",
+  email: record.email || "",
+  address: record.address || "",
+  mst: record.mst || "",
+  zalo: record.zalo || "",
+  messenger: record.messenger || "",
+  fanpage: record.fanpage || "",
+  tiktok: record.tiktok || "",
+  youtube: record.youtube || "",
+  google_tag_head: record.google_tag_head || "",
+  google_tag_body: record.google_tag_body || "",
+});
+
+const getSaveErrorMessage = (error) => {
+  const fieldErrors = Object.values(error?.response?.data || {})
+    .flatMap((fieldError) => fieldError?.message ? [fieldError.message] : [])
+    .filter(Boolean);
+
+  return fieldErrors.join(" ") || error?.response?.message || "Có lỗi xảy ra khi lưu.";
+};
 
 const SiteSettingsPage = () => {
   const [record, setRecord] = useState(null);
@@ -36,21 +59,7 @@ const SiteSettingsPage = () => {
       .getFirstListItem("")
       .then((rec) => {
         setRecord(rec);
-        setForm({
-          hotline_kd: rec.hotline_kd || "",
-          hotline_dv: rec.hotline_dv || "",
-          hotline: rec.hotline || "",
-          email: rec.email || "",
-          address: rec.address || "",
-          mst: rec.mst || "",
-          zalo: rec.zalo || "",
-          messenger: rec.messenger || "",
-          fanpage: rec.fanpage || "",
-          tiktok: rec.tiktok || "",
-          youtube: rec.youtube || "",
-          google_tag_head: rec.google_tag_head || "",
-          google_tag_body: rec.google_tag_body || "",
-        });
+        setForm(toForm(rec));
       })
       .catch(() => setMessage("Không tải được cấu hình website. Vui lòng tải lại trang."))
       .finally(() => setLoading(false));
@@ -61,18 +70,18 @@ const SiteSettingsPage = () => {
     setSaving(true);
     setMessage("");
     try {
-      const formData = new FormData();
-      Object.entries(form).forEach(([k, v]) => formData.append(k, v));
-      if (logoFile) formData.append("logo", logoFile);
-      if (faviconFile) formData.append("favicon", faviconFile);
-      const updated = await pb.collection("site_settings").update(record.id, formData);
+      const data = logoFile || faviconFile
+        ? { ...form, ...(logoFile && { logo: logoFile }), ...(faviconFile && { favicon: faviconFile }) }
+        : form;
+      const updated = await pb.collection("site_settings").update(record.id, data);
       setRecord(updated);
+      setForm(toForm(updated));
       setLogoFile(null);
       setFaviconFile(null);
       invalidateSiteSettingsCache();
       setMessage("Đã lưu cấu hình website.");
     } catch (err) {
-      setMessage(err?.response?.message || "Có lỗi xảy ra khi lưu.");
+      setMessage(getSaveErrorMessage(err));
     } finally {
       setSaving(false);
     }

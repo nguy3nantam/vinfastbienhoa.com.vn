@@ -34,7 +34,7 @@ const DepositDialog = () => {
   const { settings } = useSiteSettings();
   const { vehicles } = useVehicles();
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ name: "", phone: "", model: "", support: "", message: "" });
+  const [form, setForm] = useState({ name: "", phone: "", model: "", support: "" });
   const [status, setStatus] = useState("idle");
   const [error, setError] = useState("");
 
@@ -64,11 +64,10 @@ const DepositDialog = () => {
         name: form.name.trim(),
         phone: form.phone.trim(),
         model: form.model,
-        color: form.support,
-        message: form.message.trim(),
+        support: form.support,
       });
       setStatus("done");
-      setForm({ name: "", phone: "", model: "", support: "", message: "" });
+      setForm({ name: "", phone: "", model: "", support: "" });
     } catch (err) {
       setStatus("idle");
       setError("Đã có lỗi xảy ra, vui lòng thử lại hoặc gọi hotline.");
@@ -148,16 +147,6 @@ const DepositDialog = () => {
                   </select>
                 </Field>
               </div>
-              <Field label="Lời nhắn">
-                <textarea
-                  value={form.message}
-                  onChange={update("message")}
-                  rows={3}
-                  placeholder="Nhu cầu của bạn..."
-                  className={`${inputCls} resize-none`}
-                />
-              </Field>
-
               {error && <p className="text-center text-sm text-red-600">{error}</p>}
 
               <button

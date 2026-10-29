@@ -34,7 +34,7 @@ const ContactSection = ({ selectedModel }) => {
         name: form.name.trim(),
         phone: form.phone.trim(),
         model: form.model,
-        color: form.support,
+        support: form.support,
         message: form.message.trim(),
       });
       setStatus("done");

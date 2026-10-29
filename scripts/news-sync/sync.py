@@ -4,8 +4,10 @@ from html.parser import HTMLParser
 import json
 import os
 import re
+import signal
 import subprocess
 import sys
+import tempfile
 import time
 import unicodedata
 import urllib.error
@@ -43,25 +45,40 @@ def slugify(s):
 
 
 def fetch_rendered_html(url, virtual_time_budget_ms):
-    result = subprocess.run(
-        [
+    with tempfile.TemporaryDirectory(prefix="chromium-") as profile_dir, tempfile.TemporaryFile() as out_file:
+        command = [
             "chromium-browser",
             "--headless=new",
             "--disable-gpu",
             "--no-sandbox",
             "--disable-dev-shm-usage",
-            f"--user-data-dir=/tmp/chromium-{os.getpid()}",
+            f"--user-data-dir={profile_dir}",
             "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
             "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             "--dump-dom",
             f"--virtual-time-budget={virtual_time_budget_ms}",
             url,
-        ],
-        capture_output=True,
-        timeout=90,
-        check=True,
-    )
-    return result.stdout.decode("utf-8", errors="replace")
+        ]
+        process = subprocess.Popen(
+            command,
+            stdout=out_file,
+            stderr=subprocess.DEVNULL,
+            start_new_session=True,
+        )
+        try:
+            return_code = process.wait(timeout=90)
+        except subprocess.TimeoutExpired:
+            os.killpg(process.pid, signal.SIGTERM)
+            try:
+                process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                os.killpg(process.pid, signal.SIGKILL)
+                process.wait()
+            raise
+        if return_code:
+            raise subprocess.CalledProcessError(return_code, command)
+        out_file.seek(0)
+        return out_file.read().decode("utf-8", errors="replace")
 
 
 def parse_items(html_content):

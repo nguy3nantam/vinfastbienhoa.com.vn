@@ -161,6 +161,20 @@ try {
   console.log('PASS failed news save shows an error and editing preserves publication date');
 
   await page.setViewportSize({ width: 390, height: 844 });
+  await go('/admin/settings/mail');
+  await page.getByRole('heading', { name: 'Cấu hình gửi mail', exact: true }).waitFor();
+  assert.ok(await page.getByRole('button', { name: 'Mở menu quản trị' }).isVisible());
+  assert.ok(await page.getByRole('button', { name: 'Lưu tất cả cấu hình mail', exact: true }).isVisible());
+  assert.ok(await page.locator('#admin-navigation').evaluate(node => node.getBoundingClientRect().right <= 0));
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  await page.getByRole('button', { name: 'Mở menu quản trị' }).click();
+  await page.getByRole('link', { name: 'Cấu hình email', exact: true }).waitFor();
+  assert.ok(await page.locator('#admin-navigation').evaluate(node => node.getBoundingClientRect().left === 0));
+  assert.equal(await page.getByRole('button', { name: 'Đóng menu quản trị' }).count(), 2);
+  await page.keyboard.press('Escape');
+  await page.waitForFunction(() => document.querySelector('#admin-navigation').getBoundingClientRect().right <= 0);
+  console.log('PASS mobile admin uses a drawer and mail settings fit the viewport');
+
   await go('/');
   await page.locator('#dong-xe').waitFor();
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));

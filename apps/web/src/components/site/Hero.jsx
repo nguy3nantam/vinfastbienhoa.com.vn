@@ -97,14 +97,14 @@ const Hero = () => {
       <button
         onClick={() => go(i - 1)}
         aria-label="Trước"
-        className="absolute left-3 top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/25 text-white backdrop-blur transition hover:bg-white/40 sm:flex md:left-4 md:h-12 md:w-12"
+        className="absolute left-3 top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md bg-white text-neutral-900 shadow-sm transition hover:bg-neutral-100 sm:flex md:left-4 md:h-12 md:w-12"
       >
         <ChevronLeft className="h-5 w-5 md:h-6 md:w-6" />
       </button>
       <button
         onClick={() => go(i + 1)}
         aria-label="Sau"
-        className="absolute right-3 top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/25 text-white backdrop-blur transition hover:bg-white/40 sm:flex md:right-4 md:h-12 md:w-12"
+        className="absolute right-3 top-1/2 z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md bg-white text-neutral-900 shadow-sm transition hover:bg-neutral-100 sm:flex md:right-4 md:h-12 md:w-12"
       >
         <ChevronRight className="h-5 w-5 md:h-6 md:w-6" />
       </button>

@@ -8,34 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import pb from "@/lib/pocketbaseClient";
 
-const DEFAULT_SENDERS = [
-  {
-    id: "s1",
-    name: "VinFast Kim Sơn - Thông báo hệ thống",
-    email: "no-reply@vinfastbienhoa.com.vn",
-    role: "Thông báo hệ thống",
-    isDefault: true,
-    active: true,
-  },
-  {
-    id: "s2",
-    name: "Phòng Kinh Doanh & Báo Giá",
-    email: "kd@vinfastbienhoa.com.vn",
-    role: "Tư vấn & Báo giá",
-    isDefault: false,
-    active: true,
-  },
-  {
-    id: "s3",
-    name: "Chăm Sóc Khách Hàng & Dịch Vụ",
-    email: "cskh@vinfastbienhoa.com.vn",
-    role: "Hỗ trợ & Dịch vụ",
-    isDefault: false,
-    active: true,
-  },
-];
-
-const DEFAULT_RECIPIENTS = [];
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const normalizeRecipients = (items) => {
@@ -67,24 +39,10 @@ const MailSettingsPage = () => {
   const [mailSettingsId, setMailSettingsId] = useState("");
 
   // Configured sender accounts list
-  const [senders, setSenders] = useState(() => {
-    try {
-      const saved = localStorage.getItem("vf_mail_senders");
-      return saved ? JSON.parse(saved) : DEFAULT_SENDERS;
-    } catch {
-      return DEFAULT_SENDERS;
-    }
-  });
+  const [senders, setSenders] = useState([]);
 
   // Notification recipient list
-  const [recipients, setRecipients] = useState(() => {
-    try {
-      const saved = localStorage.getItem("vf_mail_recipients");
-      return saved ? JSON.parse(saved) : DEFAULT_RECIPIENTS;
-    } catch {
-      return DEFAULT_RECIPIENTS;
-    }
-  });
+  const [recipients, setRecipients] = useState([]);
 
   // New sender input form state
   const [newSender, setNewSender] = useState({ name: "", email: "", role: "Tư vấn & Báo giá" });
@@ -109,20 +67,16 @@ const MailSettingsPage = () => {
         setLoadedSenderAddress(settings.meta?.senderAddress || "");
         setMailSettingsId(mailSettings?.id || "");
 
-        if (mailSettings?.recipients_json) {
-          try {
-            const list = JSON.parse(mailSettings.recipients_json);
-            if (Array.isArray(list)) setRecipients(list);
-          } catch {}
-        }
-        if (mailSettings?.senders_json) {
-          try {
-            const list = JSON.parse(mailSettings.senders_json);
-            if (Array.isArray(list)) setSenders(list);
-          } catch {}
-        }
+        const storedRecipients = JSON.parse(mailSettings?.recipients_json || "[]");
+        const storedSenders = JSON.parse(mailSettings?.senders_json || "[]");
+        setRecipients(Array.isArray(storedRecipients) ? storedRecipients : []);
+        setSenders(Array.isArray(storedSenders) ? storedSenders : []);
       })
-      .catch(() => {})
+      .catch((err) => {
+        setRecipients([]);
+        setSenders([]);
+        setMessage(err?.response?.message || "Không thể tải cấu hình mail từ máy chủ. Vui lòng đăng nhập lại và thử lại.");
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -200,8 +154,6 @@ const MailSettingsPage = () => {
 
       setSenders(normalizedSenders);
       setRecipients(normalizedRecipients);
-      localStorage.setItem("vf_mail_senders", JSON.stringify(normalizedSenders));
-      localStorage.setItem("vf_mail_recipients", JSON.stringify(normalizedRecipients));
 
       setForm((f) => ({ ...f, password: "" }));
       setLoadedSenderAddress(smtpSenderEmail);
@@ -244,7 +196,6 @@ const MailSettingsPage = () => {
     };
     const updated = [...senders, item];
     setSenders(updated);
-    localStorage.setItem("vf_mail_senders", JSON.stringify(updated));
     setNewSender({ name: "", email: "", role: "Tư vấn & Báo giá" });
   };
 
@@ -254,13 +205,11 @@ const MailSettingsPage = () => {
       updated[0].isDefault = true;
     }
     setSenders(updated);
-    localStorage.setItem("vf_mail_senders", JSON.stringify(updated));
   };
 
   const handleSetDefaultSender = (sender) => {
     const updated = senders.map((s) => ({ ...s, isDefault: s.id === sender.id }));
     setSenders(updated);
-    localStorage.setItem("vf_mail_senders", JSON.stringify(updated));
   };
 
   const handleToggleSender = (id, active) => {
@@ -289,14 +238,12 @@ const MailSettingsPage = () => {
     };
     const updated = [...recipients, item];
     setRecipients(updated);
-    localStorage.setItem("vf_mail_recipients", JSON.stringify(updated));
     setNewRecipient({ email: "", note: "" });
   };
 
   const handleRemoveRecipient = (id) => {
     const updated = recipients.filter((r) => r.id !== id);
     setRecipients(updated);
-    localStorage.setItem("vf_mail_recipients", JSON.stringify(updated));
   };
 
   const handleToggleRecipient = (id, active) => {
@@ -320,18 +267,18 @@ const MailSettingsPage = () => {
   if (loading) return <p className="text-neutral-400">Đang tải...</p>;
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-5 sm:space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-bold">Cấu hình gửi mail</h1>
+        <h1 className="font-display text-2xl font-bold sm:text-3xl">Cấu hình gửi mail</h1>
         <p className="mt-1 text-sm text-neutral-500">
           Quản lý máy chủ SMTP, gom nhóm các địa chỉ email gửi đi và danh sách email nhận thông báo khách hàng mới.
         </p>
       </div>
 
-      <form onSubmit={save} className="space-y-6">
+      <form onSubmit={save} className="space-y-6 pb-20 sm:pb-0">
         {/* Máy chủ SMTP */}
-        <Card>
-          <CardHeader className="flex-row items-center justify-between space-y-0">
+        <Card className="min-w-0 overflow-hidden">
+          <CardHeader className="flex-row items-center justify-between space-y-0 p-4 sm:p-6">
             <CardTitle className="text-base flex items-center gap-2">
               <ShieldCheck className="h-5 w-5 text-[#3b5bdb]" />
               Máy chủ SMTP
@@ -345,7 +292,7 @@ const MailSettingsPage = () => {
               <span className="text-sm font-medium text-neutral-600">{form.enabled ? "Đang bật" : "Đang tắt"}</span>
             </div>
           </CardHeader>
-          <CardContent className="grid gap-5 sm:grid-cols-2">
+          <CardContent className="grid gap-4 p-4 pt-0 sm:grid-cols-2 sm:gap-5 sm:p-6 sm:pt-0">
             <div>
               <label className="mb-1.5 block text-sm font-medium">SMTP Host</label>
               <Input
@@ -404,9 +351,9 @@ const MailSettingsPage = () => {
         </Card>
 
         {/* GOM CHUNG DANH SÁCH EMAIL GỬI ĐI */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base flex items-center gap-2">
+        <Card className="min-w-0 overflow-hidden">
+          <CardHeader className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+            <CardTitle className="flex items-start gap-2 text-base leading-snug sm:items-center">
               <Mail className="h-5 w-5 text-[#3b5bdb]" />
               Danh sách địa chỉ email gửi đi (Outgoing Sender Emails)
             </CardTitle>
@@ -414,13 +361,13 @@ const MailSettingsPage = () => {
               {senders.length} địa chỉ
             </Badge>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-5 p-4 pt-0 sm:space-y-6 sm:p-6 sm:pt-0">
             <p className="text-xs text-neutral-500">
               Đây là địa chỉ From dùng khi gửi thông báo, không phải hộp thư được tạo trên máy chủ. Nhà cung cấp SMTP có thể yêu cầu người gửi mặc định trùng Username SMTP.
             </p>
 
             <div className="overflow-x-auto rounded-md border border-neutral-200 bg-white">
-              <Table>
+              <Table className="min-w-[760px]">
                 <TableHeader>
                   <TableRow>
                     <TableHead>Tên hiển thị người gửi</TableHead>
@@ -506,13 +453,13 @@ const MailSettingsPage = () => {
                   value={newSender.email}
                   onChange={(e) => setNewSender((s) => ({ ...s, email: e.target.value }))}
                 />
-                <div className="flex gap-2">
+                <div className="flex flex-col gap-2 sm:flex-row">
                   <Input
                     placeholder="Mục đích (ví dụ: Tư vấn & Báo giá)"
                     value={newSender.role}
                     onChange={(e) => setNewSender((s) => ({ ...s, role: e.target.value }))}
                   />
-                  <Button type="button" onClick={handleAddSender} className="flex-shrink-0">
+                  <Button type="button" onClick={handleAddSender} className="w-full flex-shrink-0 sm:w-auto">
                     <Plus className="h-4 w-4" />
                     Thêm
                   </Button>
@@ -523,9 +470,9 @@ const MailSettingsPage = () => {
         </Card>
 
         {/* DANH SÁCH EMAIL NHẬN THÔNG BÁO KHÁCH ĐĂNG KÝ MỚI */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base flex items-center gap-2">
+        <Card className="min-w-0 overflow-hidden">
+          <CardHeader className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+            <CardTitle className="flex items-start gap-2 text-base leading-snug sm:items-center">
               <Mail className="h-5 w-5 text-[#3b5bdb]" />
               Danh sách email nhận thông báo (Lead Notifications)
             </CardTitle>
@@ -533,7 +480,7 @@ const MailSettingsPage = () => {
               {recipients.length} người nhận
             </Badge>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-5 p-4 pt-0 sm:space-y-6 sm:p-6 sm:pt-0">
             <p className="text-xs text-neutral-500">
               Chỉ email đang bật mới nhận thông báo khách hàng mới. Danh sách này không tạo hộp thư; địa chỉ phải tồn tại và domain phải có MX hợp lệ.
             </p>
@@ -593,21 +540,30 @@ const MailSettingsPage = () => {
           </p>
         )}
 
-        <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
-          <Button type="submit" disabled={saving} size="lg">
+        <div className="fixed inset-x-0 bottom-0 z-30 border-t border-neutral-200 bg-white/95 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-3 shadow-[0_-8px_24px_rgba(0,0,0,0.08)] backdrop-blur sm:hidden">
+          <div className="mx-auto max-w-6xl">
+            <Button type="submit" disabled={saving} size="lg" className="w-full">
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              {saving ? "Đang lưu cấu hình..." : "Lưu tất cả cấu hình mail"}
+            </Button>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4">
+          <Button type="submit" disabled={saving} size="lg" className="hidden sm:inline-flex">
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             Lưu tất cả cấu hình mail
           </Button>
 
-          <div className="flex items-center gap-2">
+          <div className="grid w-full gap-2 sm:flex sm:w-auto sm:items-center">
             <Input
               type="email"
               placeholder="Nhập email nhận thử"
               value={testEmail}
               onChange={(e) => setTestEmail(e.target.value)}
-              className="w-64"
+              className="w-full sm:w-64"
             />
-            <Button type="button" variant="outline" onClick={sendTest} disabled={testing}>
+            <Button type="button" variant="outline" onClick={sendTest} disabled={testing} className="w-full sm:w-auto">
               {testing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
               Gửi thử
             </Button>
@@ -619,4 +575,3 @@ const MailSettingsPage = () => {
 };
 
 export default MailSettingsPage;
-

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Navigate, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -11,6 +11,8 @@ import {
   ExternalLink,
   Images,
   Car,
+  Menu,
+  X,
 } from "lucide-react";
 import { isAdminAuthed, currentRole, adminLogout, currentAdmin } from "@/lib/adminAuth";
 
@@ -31,6 +33,7 @@ const ADMIN_ONLY_PREFIXES = ["/admin/users", "/admin/settings"];
 const AdminLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const activeNav = NAV_ITEMS.slice().reverse().find((item) =>
@@ -38,7 +41,22 @@ const AdminLayout = () => {
     );
     const label = activeNav ? activeNav.label : "Quản trị";
     document.title = `${label} | Quản trị`;
+    setMenuOpen(false);
   }, [location.pathname]);
+
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const closeOnEscape = (event) => {
+      if (event.key === "Escape") setMenuOpen(false);
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [menuOpen]);
 
   if (!isAdminAuthed()) {
     return <Navigate to="/admin/login" replace state={{ from: location.pathname }} />;
@@ -59,12 +77,46 @@ const AdminLayout = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-[#f6f7f9] text-[#151515]">
-      <aside className="flex w-64 flex-shrink-0 flex-col border-r border-black/5 bg-white">
-        <div className="flex h-16 items-center border-b border-black/5 px-5">
+    <div className="min-h-screen min-w-0 bg-[#f6f7f9] text-[#151515] md:flex">
+      <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-black/5 bg-white px-4 md:hidden">
+        <span className="min-w-0 truncate font-display text-base font-bold tracking-wide">VinFast Kim Sơn</span>
+        <button
+          type="button"
+          onClick={() => setMenuOpen(true)}
+          className="ml-3 inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg border border-neutral-200 text-neutral-700"
+          aria-label="Mở menu quản trị"
+          aria-expanded={menuOpen}
+          aria-controls="admin-navigation"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
+      </header>
+
+      {menuOpen && (
+        <button
+          type="button"
+          className="fixed inset-0 z-40 bg-black/40 md:hidden"
+          onClick={() => setMenuOpen(false)}
+          aria-label="Đóng menu quản trị"
+        />
+      )}
+
+      <aside
+        id="admin-navigation"
+        className={`fixed inset-y-0 left-0 z-50 flex w-[min(20rem,86vw)] flex-col border-r border-black/5 bg-white shadow-xl transition-transform duration-200 md:static md:z-auto md:w-64 md:flex-shrink-0 md:translate-x-0 md:shadow-none ${menuOpen ? "translate-x-0" : "-translate-x-full"}`}
+      >
+        <div className="flex h-16 items-center justify-between border-b border-black/5 px-5">
           <span className="font-display text-lg font-bold tracking-wide">VinFast Kim Sơn</span>
+          <button
+            type="button"
+            onClick={() => setMenuOpen(false)}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-neutral-500 hover:bg-neutral-100 md:hidden"
+            aria-label="Đóng menu quản trị"
+          >
+            <X className="h-5 w-5" />
+          </button>
         </div>
-        <nav className="flex-1 space-y-1 p-3">
+        <nav className="flex-1 space-y-1 overflow-y-auto p-3">
           {navItems.map(({ to, label, icon: Icon, end }) => (
             <NavLink
               key={to}
@@ -102,8 +154,8 @@ const AdminLayout = () => {
           </button>
         </div>
       </aside>
-      <main className="flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-6xl p-6 lg:p-10">
+      <main className="min-w-0 flex-1 overflow-y-auto">
+        <div className="mx-auto w-full max-w-6xl p-4 sm:p-6 lg:p-10">
           <Outlet />
         </div>
       </main>
